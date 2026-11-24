@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import importlib.util
+import sys
 import pathlib
 from unittest.mock import AsyncMock, MagicMock
 
@@ -19,6 +20,7 @@ _HERE = pathlib.Path(__file__).resolve().parents[1]
 def _load(name: str, path: pathlib.Path):
     spec = importlib.util.spec_from_file_location(name, path)
     module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
     spec.loader.exec_module(module)
     return module
 

@@ -26,6 +26,9 @@ from __future__ import annotations
 import functools
 import logging
 
+from ._pythonmonkey import call
+
+
 logger = logging.getLogger(__name__)
 
 _PATCHED_ATTR = "_slack_flat_replies_patched"
@@ -34,14 +37,10 @@ FLAG = "_hermes_no_thread_response"
 
 def _flat(adapter, event, ts, is_dm) -> bool:
     """A top-level message from a person, in a channel."""
-    if is_dm or not isinstance(event, dict) or not event.get("user"):
-        return False
-    if event.get("_hermes_reaction") or event.get("_hermes_force_process"):
-        return False
-    thread = event.get("thread_ts")
-    if thread and thread != ts:
-        return False
-    return not adapter._event_declares_bot_sender(event)
+    return isinstance(event, dict) and call(
+        __file__, "shouldReplyFlat", event, ts, is_dm,
+        lambda: adapter._event_declares_bot_sender(event),
+    )
 
 
 def wire(native, adapter) -> None:
