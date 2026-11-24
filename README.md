@@ -4,7 +4,7 @@ Hermes plugin: when a person writes a top-level message in a Slack channel, Herm
 
 ## Why
 
-Leon's rule (2026-11-21): "always respond in a channel instead of as a thread unless I respond in that thread", as if Slack's "Also send to channel" were ticked. Stock Hermes (`reply_in_thread`, on by default) opens a thread under every top-level channel message, so in a new [autolinear](https://github.com/leonsilicon/leonsilicon.ai/blob/main/packages/com/leonsilicon/hermes/plugins/autolinear/README.md) issue channel the answer hid in a thread under Leon's message.
+Leon's rule (2026-11-21): "always respond in a channel instead of as a thread unless I respond in that thread", as if Slack's "Also send to channel" were ticked. Stock Hermes (`reply_in_thread`, on by default) opens a thread under every top-level channel message, so in a new [autolinear](https://github.com/leonsilicon/leonsilicon.ai/blob/main/apps/hermes-plugin-autolinear/README.md) issue channel the answer hid in a thread under Leon's message.
 
 ## What it does
 
@@ -19,7 +19,7 @@ autolinear's plugin calls `_session_thread_ts` for the copy of Leon's message it
 ## Install
 
 ```sh
-hermes plugins install leonsiliconAI/slack-flat-replies --enable
+hermes plugins install leonsiliconAI/hermes-plugin-slack-flat-replies --enable
 ```
 
 See [migration steps](https://github.com/leonsilicon/leonsilicon.ai/blob/main/DEVELOPMENT.md#hermes-plugin-mirrors) for an existing install. The plugin takes effect on the live adapter without a restart. The gateway log shows `slack-flat-replies: Hermes answers top-level channel messages in the channel, threads in their thread`.

@@ -24,7 +24,7 @@ def _load(name: str, path: pathlib.Path):
 
 
 plugin = _load("slack_flat_replies", _HERE / "__init__.py")
-autolinear = _load("autolinear", _HERE.parent / "autolinear" / "__init__.py")
+autolinear = _load("autolinear", _HERE.parent / "hermes-plugin-autolinear" / "__init__.py")
 
 LEON, BOT = "U0LEON00001", "U_BOT"
 CHANNEL, DM, NEW = "C0ISSUE0001", "D0LEONDM01", "C0NEWISSUE"
