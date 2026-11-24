@@ -1,0 +1,7 @@
+name: slack-flat-replies
+label: Slack flat replies
+version: 1.0.0
+description: >
+  Hermes answers a person's top-level Slack message at the top of the channel, with one session per
+  channel, and answers in a thread only when the message is in that thread.
+author: leonsilicon

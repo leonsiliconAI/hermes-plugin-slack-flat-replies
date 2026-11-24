@@ -1,0 +1,13 @@
+{
+  "name": "@-/com.leonsilicon.hermes.plugins.slack-flat-replies",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Hermes plugin: top-level replies to people's top-level Slack messages, thread replies only in threads.",
+  "type": "module",
+  "imports": {
+    "#plugin": "./plugin.ts"
+  },
+  "exports": {
+    ".": "./+.ts"
+  }
+}
