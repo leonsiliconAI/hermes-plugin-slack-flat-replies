@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import importlib.util
 import sys
 import pathlib
@@ -12,6 +13,7 @@ import pytest
 
 from gateway.config import PlatformConfig
 from gateway.platforms.base import _reply_anchor_for_event, _thread_metadata_for_source
+from gateway.stream_consumer import GatewayStreamConsumer, StreamConsumerConfig
 from plugins.platforms.slack.adapter import SlackAdapter
 
 _HERE = pathlib.Path(__file__).resolve().parents[1]
@@ -165,6 +167,46 @@ async def test_autolinear_reply_uses_the_moved_issue_context(
             client.chat_postMessage.assert_awaited_once()
             assert client.chat_postMessage.await_args.kwargs["channel"] == NEW
             assert "thread_ts" not in client.chat_postMessage.await_args.kwargs
+            metadata = _thread_metadata_for_source(turn.source)
+            result, _ = await adapter.send_final_ledgered(
+                turn, "test", "Sent the report.\n\n@Autolinear move done", {**metadata, "notify": True},
+                reply_to=_reply_anchor_for_event(turn),
+            )
+            assert result.success
+            client.chat_postMessage.assert_awaited_once()
+
+            progress = muse.Store(tmp_path / "hermes22muse").progress
+            slack = muse.Slack(adapter, "")
+            client.chat_update.side_effect = lambda **kw: {"ok": True, "channel": kw["channel"], "ts": kw["ts"]}
+            await progress.flush(slack)
+            assert client.chat_update.await_args.kwargs["ts"] == root
+            assert "Sent the report.\n\n@Autolinear move done" in client.chat_update.await_args.kwargs["text"]
+
+            for transport in ("edit", "draft"):
+                consumer = GatewayStreamConsumer(adapter, NEW, StreamConsumerConfig(transport=transport),
+                                                 metadata=metadata, initial_reply_to_id=_reply_anchor_for_event(turn))
+                consumer.on_delta("I've checked the attachment and the recipient.")
+                stream = asyncio.create_task(consumer.run())
+                await asyncio.sleep(0.2)
+                answer = f"Confirmed delivery using {transport} streaming."
+                consumer.finish(answer)
+                await asyncio.wait_for(stream, 2)
+                await progress.flush(slack)
+                assert answer in client.chat_update.await_args.kwargs["text"]
+                assert client.chat_update.await_args.kwargs["ts"] == root
+                client.chat_postMessage.assert_awaited_once()
+                client.api_call.assert_not_called()
+
+            await adapter.send_final_ledgered(
+                turn, "test", "To Codex: Check the attachment.", {**metadata, "notify": True},
+                reply_to=_reply_anchor_for_event(turn),
+            )
+            assert client.chat_postMessage.await_args.kwargs["thread_ts"] == root
+            await adapter.send_final_ledgered(
+                turn, "test", "Temporary notice.", {**metadata, "notify": True},
+                reply_to=_reply_anchor_for_event(turn), is_ephemeral_response=True,
+            )
+            assert client.chat_postMessage.await_args.kwargs["text"] == "Temporary notice."
         else:
             client.chat_postMessage.assert_not_awaited()
         assert await _reply_thread(adapter, turn) == expected_thread
